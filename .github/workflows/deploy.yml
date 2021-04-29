@@ -23,6 +23,7 @@ jobs:
           host: ${{secrets.SSH_HOST}}
           key: ${{secrets.SSH_KEY}}
           username: ${{secrets.USER}}
+          passphrase: ${{secrets.SSH_PASSPHRASE}}
           
           script: |
             cd infinity_meme/
