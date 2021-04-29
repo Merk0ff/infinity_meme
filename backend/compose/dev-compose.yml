@@ -1,0 +1,94 @@
+version: '3.7'
+
+volumes:
+  postgres-data:
+    driver: local
+  meme-data:
+    driver: local
+
+x-backend_variables: &backend_vars
+  # PostgreSQL
+  DB_USER: 'webuser'
+  DB_NAME: 'infinity_meme'
+  DB_HOST: 'postgres'
+  DB_PORT: '5432'
+
+  # Redis
+  REDIS_HOST: 'redis'
+  REDIS_PORT: '6379'
+  REDIS_DB: '0'
+
+services:
+  backend:
+    build:
+      context: ../
+      target: backend
+    volumes:
+      - type: 'bind' # only for local dev setup
+        source: '../'
+        target: '/ininity_meme/'
+      - type: 'volume'
+        source: 'meme-data'
+        target: '/meme-data'
+        volume:
+          nocopy: true
+    command: 'sleep infinity'
+
+    environment:
+      <<: *backend_vars
+      DJANGO_SETTINGS_MODULE: 'infinity_meme.settings'
+
+    env_file:
+      - ../prod.env
+
+  postgres:
+    image: postgres:13-alpine
+    restart: always
+    expose:
+      - '5432'
+    environment:
+      POSTGRES_USER: 'webuser'
+      POSTGRES_DB: 'infinity_meme'
+    env_file:
+      - ../prod.env
+    volumes:
+      - type: volume
+        source: 'postgres-data'
+        target: '/var/lib/postgresql/data'
+        volume:
+          nocopy: true
+
+  redis:
+    restart: always
+    image: redis:alpine
+    expose:
+      - '6379'
+
+  celery:
+    restart: always
+    build:
+      target: backend
+      context: ../
+      args:
+        environment: 'deploy'
+    volumes:
+      - type: 'bind'
+        source: '../'
+        target: '/ininity_meme/'
+      - type: 'volume'
+        source: 'meme-data'
+        target: '/meme-data'
+        volume:
+          nocopy: true
+
+    command: 'celery -A infinity_meme.my_celery.app worker --beat --loglevel=info'
+
+    environment:
+      <<: *backend_vars
+      DJANGO_SETTINGS_MODULE: 'infinity_meme.settings'
+      DEBUG: 'False'
+      FQDN: 'localhost'
+      SECURE: 'False'
+      PORT: '8000'
+    env_file:
+      - ../prod.env

@@ -1,0 +1,32 @@
+# backend
+*.orig
+*.pyc
+*.mo
+*.db
+*.pot
+*.map
+
+*.pyo
+.cache/
+
+**/.mypy_cache/
+**/__pycache__/
+
+**/.coverage
+screenshots
+
+
+#pyCharm files
+.idea
+.vscode
+.pythonconfig
+**/venv
+
+# jupyter
+**/.ipynb_checkpoints
+**/*.ipynb
+
+# OS X
+.DS_Store
+
+prod.env
